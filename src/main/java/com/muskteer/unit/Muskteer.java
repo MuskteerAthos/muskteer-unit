@@ -17,6 +17,6 @@ import java.lang.annotation.Target;
 public @interface Muskteer {
 
     boolean state();
-    String param();
+    long sequence();
 
 }
