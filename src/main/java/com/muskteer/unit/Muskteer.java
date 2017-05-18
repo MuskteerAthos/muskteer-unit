@@ -1,6 +1,6 @@
 /**
  * FileName:   Muskteer.java
- * @Description TODO
+ * @Description interface
  * All rights Reserved, Code by Muskteer
  * Copyright MuskteerAthos@gmail.com
  * @author MuskteerAthos
@@ -17,7 +17,6 @@ import java.lang.annotation.Target;
 public @interface Muskteer {
 
     boolean state();
-
     String param();
 
 }
