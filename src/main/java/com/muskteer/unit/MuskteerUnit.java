@@ -26,14 +26,15 @@ import com.muskteer.unit.util.MuskLogger;
 public class MuskteerUnit {
     
     private static Class<?> muskteerClass;
+    private static Class<?> muskteerClassUnit;
     
     private static MuskLogger logger = 
             LoggerFactory.getLogInstance(MuskteerUnit.class, "Unit Testing");
 
-    public static <T> void unit() {
+    public static <T> void unit(Class<T> testclass) {
         try {
             logger.info("unit started.\n");
-            checkMuskteerClass();
+            checkMuskteerClass(testclass);
             List<Pair> pairs = interationMethod(muskteerClass.getDeclaredMethods());
             executePairs(pairs);
             logger.info("unit done.\n" );
@@ -45,14 +46,12 @@ public class MuskteerUnit {
         
     }
 
-    private static void checkMuskteerClass() throws MessageException {
-        if((muskteerClass = loadFromContext()) == null){
+    private static <T> void checkMuskteerClass(Class<T> testCls) throws Exception {
+        if((muskteerClass = testCls) == null){
             throw new MessageException("unit exit, can not load execute class");
         }
-    }
-
-    private static Class<?> loadFromContext() {
-        return Thread.currentThread().getContextClassLoader().getClass();
+        String cunitname = muskteerClass.getCanonicalName() + "Unit";
+        muskteerClassUnit = Class.forName(cunitname);
     }
 
     private static void executePairs(List<Pair> pairs) throws Exception {
@@ -63,25 +62,28 @@ public class MuskteerUnit {
         Pair p;
         while(it.hasNext()){
             p = it.next();
-            if(p == null){
-                continue;
-            }
-            Method pMethod = (Method) p.getK();
-            logger.info("execute method : ".concat(pMethod.getName().concat(" started")));
-            Object result = pMethod.invoke(
-                    muskteerClass.newInstance(), p.getJ() == null ? null : buildDataFromUnit(p));
-            Class<?>  cObject = (Class<?>) result;
-            logger.info("execute method : ".concat(pMethod.getName().concat(" finish "))
-                    .concat(" result : ".concat(cObject.toString())));
+            invokeUnit(p);
         }
     }
 
-    private static <T> Object buildDataFromUnit(Pair p) 
+    private static void invokeUnit(Pair p) {
+        if (p == null) return;
+        Method pMethod = (Method) p.getK();
+        logger.info("execute method : ".concat(pMethod.getName().concat(" started")));
+        try {
+            pMethod.invoke(
+                    muskteerClass.newInstance(), p.getJ() == null ? null : buildDataFromUnit(pMethod));
+            logger.info("execute method : ".concat(pMethod.getName().concat(" finish ")));
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.info("execute method : ".concat(pMethod.getName().concat(" exception : " + e.getMessage())));
+        }
+    }
+
+    private static <T> Object buildDataFromUnit(Method pMethod) 
             throws Exception {
-        String cunitname = muskteerClass.getCanonicalName() + "Unit";
-        Class<?> cunit = Class.forName(cunitname);
-        Method cm = cunit.getMethod(((Method) p.getK()).getName());
-        return cm.invoke(cunit.newInstance());
+        Method cm = muskteerClassUnit.getMethod(pMethod.getName());
+        return cm.invoke(muskteerClassUnit.newInstance());
     }
 
     private static ArrayList<Pair> interationMethod(Method[] methods) {

@@ -18,6 +18,6 @@ public class CompareBySequence implements Comparator<Pair> {
         if(seq1 > seq2){
             return 1;
         }
-        return 0;
+        return -1;
     }
 }
