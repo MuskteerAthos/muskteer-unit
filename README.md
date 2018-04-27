@@ -1,4 +1,4 @@
-# muskteer-unit
+# quickboot-unit
 a simple java unit test framework which support multi-method simultaneous testing
 
 ## Feature
